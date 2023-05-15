@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.IPC"
+        tools:targetApi="31">
+        <provider
+            android:authorities="com.example.ipc.BookProvider"
+            android:name=".BookProvider"
+            android:permission="com.example.ipc.PROVIDER"
+            android:process=":provider">
+        </provider>
+
+
+        <provider
+            android:authorities="com.example.ipc.provider"
+            android:name=".provider"
+            android:permission="com.example.ipc.PROVIDER"
+            android:process=":provider">
+        </provider>
+        <service
+            android:name=".BookManagerService"
+            android:enabled="true"
+            android:process=":remote"
+            android:exported="true"></service>
+        <service
+            android:name=".MyService"
+            android:enabled="true"
+            android:exported="true"
+            android:process=":remote" />
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+    </application>
+
+</manifest>
