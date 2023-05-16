@@ -13,7 +13,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 public class provider extends ContentProvider {
-//    private static final String TAG = "BookProvider";
     private Context mContext;
     private SQLiteDatabase mDb;
     public static final String AUTHORITY = "com.example.ipc.provider";
@@ -51,6 +50,7 @@ public class provider extends ContentProvider {
     }
     private void initProviderData(){
         mDb = new DbOpenHelper(mContext,AUTHORITY,null,1).getWritableDatabase();
+
         mDb.execSQL("delete from "+DbOpenHelper.BOOK_TABLE_NAME);
         mDb.execSQL("delete from "+DbOpenHelper.USER_TABLE_NAME);
         mDb.execSQL("insert into book values (3,'Android');");

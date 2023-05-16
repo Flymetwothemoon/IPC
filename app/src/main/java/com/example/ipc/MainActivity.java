@@ -22,6 +22,13 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -37,8 +44,9 @@ public class MainActivity extends AppCompatActivity {
     private Button contentProvider_0;
     private Button contentprovier_1;
 
+    private Button socket;
 
-
+    private Button aidlPool;
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -87,6 +95,9 @@ public class MainActivity extends AppCompatActivity {
         aidl_0 = findViewById(R.id.aidl_0);
         contentProvider_0 = findViewById(R.id.contentprovider_0);
         contentprovier_1 = findViewById(R.id.contentprovier_1);
+        socket = findViewById(R.id.socket);
+
+        aidlPool = findViewById(R.id.aidlPool);
         // 绑定服务端
         if(!mIsBound) {
 
@@ -99,9 +110,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         }
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
+
                 contentProvider_0.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -112,9 +121,7 @@ public class MainActivity extends AppCompatActivity {
 
                     }
                 });
-            }
-        });
-        thread.start();
+
 
         aidl_0.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -157,9 +164,93 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+                socket.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Thread thread = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    InetAddress inetAddress = InetAddress.getLocalHost();
+                                    Log.d("TAG", "" + inetAddress.getHostAddress());
+                                } catch (UnknownHostException e) {
+                                    e.printStackTrace();
+                                }
+
+                                Intent intent = new Intent(MainActivity.this, SocketService.class);
+                                startService(intent);
+                                Socket socket = null;
+                                while (socket == null) {
+                                    try {
+                                        socket = new Socket("10.0.2.2", 8888);
+                                        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                                        PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+                                        out.println("你好啊！");
+                                        // 发送消息给服务器
+                                        Log.d("TAG", "Client端" + " 收到Service端发的消息:" + in.readLine());
+                                        // 接收服务器的回应消息
+                                        socket.close();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                        Log.d("TAG", "客户端问题");
+                                    }
+                                }
+                            }
+                        });
+                        thread.start();
+                    }
+                });
+
+
+        aidlPool.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Thread thread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        doWork();
+                    }
+                });
+                thread.start();
+//        doWork();
+            }
+        });
+    }
+
+
+    private void doWork(){
+        BinderPoolClient binderPoolClient = BinderPoolClient.getInstance(MainActivity.this);
+        IBinder binder = binderPoolClient.queryBinder(0);
+        ISecurityCenter iSecurityCenter = BinderPoolService.SecurityCenterImpl.asInterface(binder);
+        Log.d("TAG","visit ISecurityCenter");
+        String msg = "helloworld-Android";
+        Log.d("TAG",msg);
+
+        try {
+            String password = iSecurityCenter.encrypt(msg);
+            Log.d("TAG","encrypt:"+password);
+            Log.d("TAG","decrypt:"+iSecurityCenter.decrypt(password));
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
+        Log.d("TAG","visit ICompute");
+        IBinder binder1 = binderPoolClient.queryBinder(1);
+        ICompute iCompute = BinderPoolService.ComputeImpl.asInterface(binder1);
+
+        try {
+
+            Log.d("TAG","add"+iCompute.add(4,5));
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
 
 
     }
+
+
+
+
     private ServiceConnection mConnection1 = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
